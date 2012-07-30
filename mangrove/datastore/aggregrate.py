@@ -83,8 +83,8 @@ def aggregate_by_form_code_python(dbm, form_code, aggregates=None, aggregate_on=
 
 
 def aggregate_on_question_by_form_code_python(dbm, form_code, starttime, endtime):
-    values = _map_question( dbm, form_code, starttime, endtime )
-    return _reduce_question(values)
+    values, count = _map_question( dbm, form_code, starttime, endtime )
+    return _reduce_question(values), count
 
 def _map_question(dbm, form_code, starttime, endtime):
     view_name = "by_form_code_time"
@@ -100,21 +100,21 @@ def _map_question(dbm, form_code, starttime, endtime):
 
     for row in rows:
         form_code, timestamp, entity_id, field = row.key
-        values[(field,len(rows))].append(row.value)
+        values[field].append(row.value)
 
-    return values
+    return values, len(rows)
 
 def _reduce_question(values):
     results = defaultdict(dict)
-    for filed_tuple, value_list in values.items():
+    for filed_name, value_list in values.items():
         count = defaultdict(int)
         for i in value_list:
             if isinstance(i,list):
                 for j in i:
-                    count[j] +=1
+                    count[str(j)] +=1
             else:
-                count[i] += 1
-        results[filed_tuple] = dict(count)
+                count[str(i)] += 1
+        results[filed_name] = dict(count)
     return dict(results)
 
 
