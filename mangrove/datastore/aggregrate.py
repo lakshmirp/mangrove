@@ -82,6 +82,42 @@ def aggregate_by_form_code_python(dbm, form_code, aggregates=None, aggregate_on=
     return _reduce(aggregates, values)
 
 
+def aggregate_on_question_by_form_code_python(dbm, form_code, starttime, endtime):
+    values = _map_question( dbm, form_code, starttime, endtime )
+    return _reduce_question(values)
+
+def _map_question(dbm, form_code, starttime, endtime):
+    view_name = "by_form_code_time"
+
+    epoch_start = convert_date_string_in_UTC_to_epoch(starttime)
+    epoch_end = convert_date_string_in_UTC_to_epoch(endtime)
+    start_key = [form_code, epoch_start] if epoch_start is not None else [form_code]
+    end_key = [form_code, epoch_end] if epoch_end is not None else [form_code, {}]
+
+    rows = dbm.load_all_rows_in_view(view_name, startkey=start_key, endkey=end_key)
+
+    values = defaultdict(list)
+
+    for row in rows:
+        form_code, timestamp, entity_id, field = row.key
+        values[field].append(row.value)
+
+    return values
+
+def _reduce_question(values):
+    results = defaultdict(dict)
+    for field_name, value_list in values.items():
+        count = defaultdict(int)
+        for i in value_list:
+            if isinstance(i,list):
+                for j in i:
+                    count[j] +=1
+            else:
+                count[i] += 1
+        results[field_name] = count
+    return results
+
+
 def _map(dbm, type_path, group_level, form_code=None, start_time=None, end_time=None, aggregate_on=None, include_grand_totals=False):
 # currently it assumes one to one mapping between form code and entity type and hence only filter on form code
     view_name = "by_form_code_time"
@@ -144,3 +180,5 @@ def _end_time_filter(row, end_time):
 def _should_include_row(row, group_level, form_code, start_time, end_time):
     return _start_time_filter(row, start_time) and\
            _end_time_filter(row, end_time)
+
+

@@ -1,8 +1,6 @@
 import datetime
-import unittest
-from mangrove.datastore.aggregrate import aggregate_by_form_code_python, Sum, Min, Max, Latest, aggregation_factory
+from mangrove.datastore.aggregrate import aggregate_by_form_code_python, Sum, Min, Max, Latest, aggregation_factory, aggregate_on_question_by_form_code_python
 from mangrove.datastore.data import  LocationAggregration, LocationFilter, EntityAggregration, TypeAggregration, aggregate_for_form
-from mangrove.datastore.database import get_db_manager, _delete_db_and_remove_db_manager
 from pytz import UTC
 from mangrove.datastore.entity import Entity, get_entities_by_value, create_entity, entities_exists_with_value
 from mangrove.datastore import data
@@ -12,6 +10,9 @@ from mangrove.datastore.tests.test_data import TestData
 from mangrove.form_model.field import TextField, IntegerField, SelectField
 from mangrove.form_model.form_model import FormModel
 from mangrove.utils.test_utils.mangrove_test_case import MangroveTestCase
+
+
+
 
 
 class TestQueryApi(MangroveTestCase):
@@ -734,6 +735,17 @@ class TestQueryApi(MangroveTestCase):
         self.assertEqual(values[test_data.entity1.id], {"patients": 30, 'meds': 10, 'beds': 300, 'director': "Dr. A2"})
         self.assertEqual(values[test_data.entity2.id], {"patients": 50, 'meds': 50, 'beds': 150, 'director': "Dr. B1"})
 
+
+    def test_should_aggregate_per_question_per_form_model_with_time_filter(self):
+        test_data = TestData(self.manager)
+        values = aggregate_on_question_by_form_code_python(dbm = self.manager,
+                                                            form_code="CL1",
+                                                            starttime="01-01-2011 00:00:00",
+                                                            endtime="31-12-2011 00:00:00")
+
+        self.assertEqual(len(values), 5)
+        self.assertEqual(values['patients'], {10:1, 20:1, 50:1})
+        self.assertEqual(values['meds'], {10:1, 50:1})
 
     def test_aggregation_factory(self):
         test_object = aggregation_factory("sum", "patients")
