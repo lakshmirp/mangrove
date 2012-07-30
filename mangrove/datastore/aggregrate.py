@@ -100,13 +100,13 @@ def _map_question(dbm, form_code, starttime, endtime):
 
     for row in rows:
         form_code, timestamp, entity_id, field = row.key
-        values[field].append(row.value)
+        values[(field,len(rows))].append(row.value)
 
     return values
 
 def _reduce_question(values):
     results = defaultdict(dict)
-    for field_name, value_list in values.items():
+    for filed_tuple, value_list in values.items():
         count = defaultdict(int)
         for i in value_list:
             if isinstance(i,list):
@@ -114,8 +114,8 @@ def _reduce_question(values):
                     count[j] +=1
             else:
                 count[i] += 1
-        results[field_name] = count
-    return results
+        results[filed_tuple] = dict(count)
+    return dict(results)
 
 
 def _map(dbm, type_path, group_level, form_code=None, start_time=None, end_time=None, aggregate_on=None, include_grand_totals=False):
