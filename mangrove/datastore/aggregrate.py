@@ -102,7 +102,7 @@ def _map_question(dbm, form_code, starttime, endtime):
         form_code, timestamp, entity_id, field = row.key
         values[field].append(row.value)
 
-    return values, len(rows)
+    return values, len(rows)/len(values)
 
 def _reduce_question(values):
     results = defaultdict(dict)
