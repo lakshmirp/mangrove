@@ -82,6 +82,15 @@ def aggregate_by_form_code_python(dbm, form_code, aggregates=None, aggregate_on=
     return _reduce(aggregates, values)
 
 
+def get_by_form_code_python(dbm, form_code, aggregates=None, aggregate_on=None, filter=None,
+                            starttime=None, endtime=None,include_grand_totals = False):
+    assert is_string(form_code)
+    aggregates = [] if aggregates is None else aggregates
+
+    form = get_form_model_by_code(dbm, form_code)
+    values, count = _map_question( dbm, form_code, starttime, endtime )
+    return values
+
 def aggregate_on_question_by_form_code_python(dbm, form_code, starttime, endtime):
     values, count = _map_question( dbm, form_code, starttime, endtime )
     return _reduce_question(values), count
