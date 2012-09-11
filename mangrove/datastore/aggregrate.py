@@ -120,9 +120,9 @@ def _reduce_question(values):
         for i in value_list:
             if isinstance(i,list):
                 for j in i:
-                    count[str(j)] +=1
+                    count[unicode(j)] +=1
             else:
-                count[str(i)] += 1
+                count[unicode(i)] += 1
         results[filed_name] = dict(count)
     return dict(results)
 
